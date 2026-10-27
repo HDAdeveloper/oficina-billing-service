@@ -1,0 +1,53 @@
+spring:
+  application:
+    name: billing-service
+  datasource:
+    # Padrões para o Postgres do Billing no docker-compose da raiz (docker compose up -d)
+    url: ${DB_URL:jdbc:postgresql://localhost:5434/oficina_billing}
+    username: ${DB_USER:oficina}
+    password: ${DB_PASSWORD:oficina}
+  jpa:
+    open-in-view: false
+    hibernate:
+      # O esquema é criado só pelo Flyway; o Hibernate apenas confere se as entidades batem com ele
+      ddl-auto: validate
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+  flyway:
+    enabled: true
+
+server:
+  port: ${PORT:8082}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
+oficina:
+  seguranca:
+    # VALOR DE DESENVOLVIMENTO. Em produção (Kubernetes) vem de Secret. Precisa ser o mesmo do OS Service,
+    # que emite os tokens.
+    jwt-secret: ${JWT_SECRET:dev-only-troque-este-segredo-com-32-bytes-ou-mais}
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+
+billing:
+  mensageria:
+    habilitada: ${MENSAGERIA_HABILITADA:true}
+    regiao: ${AWS_REGION:us-east-1}
+    # Só em desenvolvimento (LocalStack). Na AWS fica vazio e vale o endpoint oficial.
+    endpoint: ${AWS_ENDPOINT_URL:}
+    fila-comandos: ${BILLING_COMMANDS_QUEUE:billing-commands}
+    topico-eventos-arn: ${EVENTS_TOPIC_ARN:arn:aws:sns:us-east-1:000000000000:oficina-saga-events}
+    intervalo-relay-ms: 1000
+    lote-relay: 50
