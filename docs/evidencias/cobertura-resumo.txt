@@ -1,0 +1,7 @@
+﻿Cobertura de testes - billing-service
+Gerado em 2026-10-23 00:13, commit dfc5684 (fonte: billing-service/target/site/jacoco/jacoco.csv)
+Linhas      : 90.5% (590 de 652)  - mÃ­nimo exigido 80%: OK
+InstruÃ§Ãµes  : 91.1% (3046 de 3342)
+Branches    : 83.5% (157 de 188)
+MÃ©todos     : 91.4% (180 de 197)
+RelatÃ³rio completo: billing-service/target/site/jacoco/index.html
