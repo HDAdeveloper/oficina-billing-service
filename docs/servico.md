@@ -3,7 +3,7 @@
 ## Responsabilidade
 
 Contexto **Faturamento** (subdomínio de suporte). Cria o orçamento de uma OS, cobra, cancela e estorna. Não conhece clientes nem veículos:
-só guarda o `osId` e o `clienteId` recebidos no comando. Participa da Saga **apenas por mensagens**, sem iniciar nada sozinho.
+só guarda o `osId` e o `clienteId` (o CPF/CNPJ do cliente, texto) recebidos no comando. Participa da Saga **apenas por mensagens**, sem iniciar nada sozinho.
 
 - **Banco:** PostgreSQL 16 (`oficina_billing`), migração Flyway `V1__criar_schema.sql`.
 - **Tabelas:** `orcamento`, `orcamento_item`, `pagamento`, `outbox_evento`, `mensagem_processada`.

@@ -67,7 +67,7 @@ class BillingServiceTest {
     }
 
     private void criar() {
-        service.processar(novaMensagem(), new CriarOrcamento(7L, "ana@x.com", itens(), TOTAL));
+        service.processar(novaMensagem(), new CriarOrcamento("52998224725", "ana@x.com", itens(), TOTAL));
     }
 
     private void cobrar(String orcamentoId, String metodo) {
@@ -112,7 +112,7 @@ class BillingServiceTest {
     @Test
     void mensagemRepetidaComOMesmoMessageIdEhIgnorada() {
         ContextoMensagem ctx = novaMensagem();
-        CriarOrcamento cmd = new CriarOrcamento(7L, "ana@x.com", itens(), TOTAL);
+        CriarOrcamento cmd = new CriarOrcamento("52998224725", "ana@x.com", itens(), TOTAL);
 
         service.processar(ctx, cmd);
         service.processar(ctx, cmd);
@@ -138,7 +138,7 @@ class BillingServiceTest {
         List<ItemOrcamento> outros = List.of(
                 new ItemOrcamento(TipoItem.SERVICO, "SRV-2", "Balanceamento", 1, new BigDecimal("50.00")));
 
-        service.processar(novaMensagem(), new CriarOrcamento(7L, "ana@x.com", outros, new BigDecimal("50.00")));
+        service.processar(novaMensagem(), new CriarOrcamento("52998224725", "ana@x.com", outros, new BigDecimal("50.00")));
 
         assertThat(orcamentos.dados).hasSize(2);
         assertThat(orcamentos.dados.get("id-1").getStatus()).isEqualTo(StatusOrcamento.CANCELADO);
@@ -148,7 +148,7 @@ class BillingServiceTest {
 
     @Test
     void valorTotalDivergenteResultaEmFalha() {
-        service.processar(novaMensagem(), new CriarOrcamento(7L, null, itens(), new BigDecimal("999.00")));
+        service.processar(novaMensagem(), new CriarOrcamento("52998224725", null, itens(), new BigDecimal("999.00")));
 
         assertThat(orcamentos.dados).isEmpty();
         assertThat(eventos.tipos()).containsExactly("ORCAMENTO_FALHOU");
@@ -157,8 +157,8 @@ class BillingServiceTest {
 
     @Test
     void semItensResultaEmFalha() {
-        service.processar(novaMensagem(), new CriarOrcamento(7L, null, List.of(), BigDecimal.ZERO));
-        service.processar(novaMensagem(), new CriarOrcamento(7L, null, null, null));
+        service.processar(novaMensagem(), new CriarOrcamento("52998224725", null, List.of(), BigDecimal.ZERO));
+        service.processar(novaMensagem(), new CriarOrcamento("52998224725", null, null, null));
 
         assertThat(eventos.tipos()).containsExactly("ORCAMENTO_FALHOU", "ORCAMENTO_FALHOU");
         assertThat(orcamentos.dados).isEmpty();
@@ -166,7 +166,7 @@ class BillingServiceTest {
 
     @Test
     void osSemIdResultaEmFalha() {
-        service.processar(new ContextoMensagem("m", "s", null, "c"), new CriarOrcamento(7L, null, itens(), TOTAL));
+        service.processar(new ContextoMensagem("m", "s", null, "c"), new CriarOrcamento("52998224725", null, itens(), TOTAL));
         assertThat(eventos.tipos()).containsExactly("ORCAMENTO_FALHOU");
     }
 

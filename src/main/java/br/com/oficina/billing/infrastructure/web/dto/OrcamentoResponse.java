@@ -7,7 +7,7 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 
-public record OrcamentoResponse(String id, Long osId, Long clienteId, String emailCliente, StatusOrcamento status,
+public record OrcamentoResponse(String id, Long osId, String clienteId, String emailCliente, StatusOrcamento status,
                                 BigDecimal valorTotal, String motivoCancelamento, List<ItemResponse> itens,
                                 Instant criadoEm, Instant atualizadoEm) {
 

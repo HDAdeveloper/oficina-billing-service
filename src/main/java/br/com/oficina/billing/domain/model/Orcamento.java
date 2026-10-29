@@ -17,7 +17,7 @@ public class Orcamento {
 
     private final String id;
     private final Long osId;
-    private final Long clienteId;
+    private final String clienteId;
     private final String emailCliente;
     private final List<ItemOrcamento> itens;
     private final BigDecimal valorTotal;
@@ -26,7 +26,7 @@ public class Orcamento {
     private final Instant criadoEm;
     private Instant atualizadoEm;
 
-    private Orcamento(String id, Long osId, Long clienteId, String emailCliente, List<ItemOrcamento> itens,
+    private Orcamento(String id, Long osId, String clienteId, String emailCliente, List<ItemOrcamento> itens,
                       StatusOrcamento status, String motivoCancelamento, Instant criadoEm, Instant atualizadoEm) {
         this.id = id;
         this.osId = osId;
@@ -41,7 +41,7 @@ public class Orcamento {
         this.atualizadoEm = atualizadoEm;
     }
 
-    public static Orcamento criar(String id, Long osId, Long clienteId, String emailCliente,
+    public static Orcamento criar(String id, Long osId, String clienteId, String emailCliente,
                                   List<ItemOrcamento> itens, Instant agora) {
         if (id == null || id.isBlank()) {
             throw new RegraDeNegocioException("Id do orçamento é obrigatório");
@@ -56,7 +56,7 @@ public class Orcamento {
     }
 
     /** Reconstrói um orçamento já gravado (usado pela persistência). */
-    public static Orcamento reconstituir(String id, Long osId, Long clienteId, String emailCliente,
+    public static Orcamento reconstituir(String id, Long osId, String clienteId, String emailCliente,
                                          List<ItemOrcamento> itens, StatusOrcamento status,
                                          String motivoCancelamento, Instant criadoEm, Instant atualizadoEm) {
         return new Orcamento(id, osId, clienteId, emailCliente, itens, status, motivoCancelamento,
@@ -116,7 +116,7 @@ public class Orcamento {
 
     public String getId() { return id; }
     public Long getOsId() { return osId; }
-    public Long getClienteId() { return clienteId; }
+    public String getClienteId() { return clienteId; }
     public String getEmailCliente() { return emailCliente; }
     public List<ItemOrcamento> getItens() { return Collections.unmodifiableList(itens); }
     public BigDecimal getValorTotal() { return valorTotal; }

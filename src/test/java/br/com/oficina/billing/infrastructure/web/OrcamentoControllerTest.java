@@ -38,7 +38,7 @@ class OrcamentoControllerTest {
     @MockitoBean ConsultaOrcamentos consulta;
 
     private static Orcamento orcamento() {
-        return Orcamento.criar("o-1", 42L, 7L, "ana@x.com",
+        return Orcamento.criar("o-1", 42L, "52998224725", "ana@x.com",
                 List.of(new ItemOrcamento(TipoItem.SERVICO, "S1", "Revisão", 2, new BigDecimal("100"))), T0);
     }
 

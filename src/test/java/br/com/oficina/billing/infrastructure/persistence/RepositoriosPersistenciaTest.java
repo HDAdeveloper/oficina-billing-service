@@ -45,7 +45,7 @@ class RepositoriosPersistenciaTest extends PostgresTestBase {
     }
 
     private static Orcamento novo(long osId) {
-        return Orcamento.criar(UUID.randomUUID().toString(), osId, 7L, "ana@x.com", itens(), T0);
+        return Orcamento.criar(UUID.randomUUID().toString(), osId, "52998224725", "ana@x.com", itens(), T0);
     }
 
     @Test

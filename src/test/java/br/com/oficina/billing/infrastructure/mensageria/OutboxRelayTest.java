@@ -57,7 +57,7 @@ class OutboxRelayTest extends PostgresTestBase {
     private long novoPedido() {
         long os = OS.incrementAndGet();
         processador.processar(new ContextoMensagem(UUID.randomUUID().toString(), "saga-" + os, os, "corr-" + os),
-                new CriarOrcamento(7L, "ana@x.com",
+                new CriarOrcamento("52998224725", "ana@x.com",
                         List.of(new ItemOrcamento(TipoItem.SERVICO, "S1", "Revisão", 1, new BigDecimal("200.00"))),
                         new BigDecimal("200.00")));
         return os;

@@ -8,7 +8,7 @@ import java.util.List;
 /** Comandos que o OS Service envia ao Billing (docs/eventos.md). */
 public sealed interface ComandoBilling {
 
-    record CriarOrcamento(Long clienteId, String emailCliente, List<ItemOrcamento> itens,
+    record CriarOrcamento(String clienteId, String emailCliente, List<ItemOrcamento> itens,
                           BigDecimal valorTotal) implements ComandoBilling {
     }
 

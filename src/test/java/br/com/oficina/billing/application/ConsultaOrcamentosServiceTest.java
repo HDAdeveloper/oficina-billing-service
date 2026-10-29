@@ -32,7 +32,7 @@ class ConsultaOrcamentosServiceTest {
     }
 
     private Orcamento orcamento(String id, long osId, Instant criadoEm) {
-        Orcamento o = Orcamento.criar(id, osId, 1L, null,
+        Orcamento o = Orcamento.criar(id, osId, "52998224725", null,
                 List.of(new ItemOrcamento(TipoItem.SERVICO, "S", "Serviço", 1, BigDecimal.TEN)), criadoEm);
         orcamentos.salvar(o);
         return o;

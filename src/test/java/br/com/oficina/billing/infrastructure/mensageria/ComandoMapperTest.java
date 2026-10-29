@@ -28,7 +28,7 @@ class ComandoMapperTest {
     @Test
     void mapeiaCriarOrcamentoComItensEContexto() throws Exception {
         var r = mapper.mapear(env("CRIAR_ORCAMENTO", """
-                {"clienteId":7,"emailCliente":"ana@x.com","valorTotal":131.00,"itens":[
+                {"clienteId":"52998224725","emailCliente":"ana@x.com","valorTotal":131.00,"itens":[
                   {"tipo":"SERVICO","codigo":"S1","descricao":"Troca de oleo","quantidade":1,"precoUnitario":80},
                   {"tipo":"peca","codigo":"P1","descricao":"Filtro","quantidade":2,"precoUnitario":"25.50"}]}"""));
 
@@ -37,7 +37,7 @@ class ComandoMapperTest {
         assertThat(r.contexto().osId()).isEqualTo(42L);
         assertThat(r.contexto().correlationId()).isEqualTo("corr-1");
         var c = (CriarOrcamento) r.comando();
-        assertThat(c.clienteId()).isEqualTo(7L);
+        assertThat(c.clienteId()).isEqualTo("52998224725");
         assertThat(c.emailCliente()).isEqualTo("ana@x.com");
         assertThat(c.valorTotal()).isEqualByComparingTo("131.00");
         assertThat(c.itens()).hasSize(2);

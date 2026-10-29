@@ -52,7 +52,7 @@ public class ComandoMapper {
                             inteiro(i, "quantidade"), decimal(i, "precoUnitario")));
                 }
             }
-            Long clienteId = p != null && p.hasNonNull("clienteId") ? p.get("clienteId").asLong() : null;
+            String clienteId = p != null && p.hasNonNull("clienteId") ? p.get("clienteId").asText() : null;
             return new CriarOrcamento(clienteId, texto(p, "emailCliente"), itens, decimal(p, "valorTotal"));
         } catch (RegraDeNegocioException | NumberFormatException e) {
             // Dado inválido nunca passa na próxima tentativa: o Billing responde ORCAMENTO_FALHOU

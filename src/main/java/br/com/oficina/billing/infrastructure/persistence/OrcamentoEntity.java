@@ -35,7 +35,7 @@ public class OrcamentoEntity {
     Long osId;
 
     @Column(name = "cliente_id")
-    Long clienteId;
+    String clienteId;
 
     @Column(name = "email_cliente")
     String emailCliente;

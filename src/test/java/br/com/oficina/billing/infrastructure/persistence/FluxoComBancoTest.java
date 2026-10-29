@@ -46,7 +46,7 @@ class FluxoComBancoTest extends PostgresTestBase {
     }
 
     private String criar(long osId) throws Exception {
-        processador.processar(ctx(osId), new CriarOrcamento(7L, "ana@x.com", itens(), new BigDecimal("200.00")));
+        processador.processar(ctx(osId), new CriarOrcamento("52998224725", "ana@x.com", itens(), new BigDecimal("200.00")));
         List<OutboxEventoEntity> eventos = outbox.findByOsIdOrderByIdAsc(osId);
         OutboxEventoEntity criado = eventos.get(eventos.size() - 1);
         assertThat(criado.getTipo()).isEqualTo("ORCAMENTO_CRIADO");
@@ -76,7 +76,7 @@ class FluxoComBancoTest extends PostgresTestBase {
     void mensagemRepetidaNaoGeraNovoEvento() throws Exception {
         long os = OS.incrementAndGet();
         ContextoMensagem mesma = ctx(os);
-        CriarOrcamento cmd = new CriarOrcamento(7L, "ana@x.com", itens(), new BigDecimal("200.00"));
+        CriarOrcamento cmd = new CriarOrcamento("52998224725", "ana@x.com", itens(), new BigDecimal("200.00"));
 
         processador.processar(mesma, cmd);
         processador.processar(mesma, cmd);

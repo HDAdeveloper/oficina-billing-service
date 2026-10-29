@@ -30,7 +30,7 @@ class OrcamentoTest {
     }
 
     private static Orcamento novo() {
-        return Orcamento.criar("orc-1", 42L, 7L, "ana@x.com", List.of(servico(), peca()), T0);
+        return Orcamento.criar("orc-1", 42L, "52998224725", "ana@x.com", List.of(servico(), peca()), T0);
     }
 
     // ------------------------------------------------------------ item
@@ -72,10 +72,10 @@ class OrcamentoTest {
     @Test
     void naoCriaSemIdOsOuItens() {
         List<ItemOrcamento> itens = List.of(servico());
-        assertThatThrownBy(() -> Orcamento.criar(" ", 1L, 1L, null, itens, T0)).isInstanceOf(RegraDeNegocioException.class);
-        assertThatThrownBy(() -> Orcamento.criar("o", null, 1L, null, itens, T0)).isInstanceOf(RegraDeNegocioException.class);
-        assertThatThrownBy(() -> Orcamento.criar("o", 1L, 1L, null, List.of(), T0)).isInstanceOf(RegraDeNegocioException.class);
-        assertThatThrownBy(() -> Orcamento.criar("o", 1L, 1L, null, null, T0)).isInstanceOf(RegraDeNegocioException.class);
+        assertThatThrownBy(() -> Orcamento.criar(" ", 1L, "52998224725", null, itens, T0)).isInstanceOf(RegraDeNegocioException.class);
+        assertThatThrownBy(() -> Orcamento.criar("o", null, "52998224725", null, itens, T0)).isInstanceOf(RegraDeNegocioException.class);
+        assertThatThrownBy(() -> Orcamento.criar("o", 1L, "52998224725", null, List.of(), T0)).isInstanceOf(RegraDeNegocioException.class);
+        assertThatThrownBy(() -> Orcamento.criar("o", 1L, "52998224725", null, null, T0)).isInstanceOf(RegraDeNegocioException.class);
     }
 
     @Test
@@ -132,11 +132,11 @@ class OrcamentoTest {
 
     @Test
     void reconstituirPreservaOEstado() {
-        Orcamento o = Orcamento.reconstituir("orc-9", 5L, 1L, "a@x.com", List.of(servico()),
+        Orcamento o = Orcamento.reconstituir("orc-9", 5L, "52998224725", "a@x.com", List.of(servico()),
                 StatusOrcamento.CANCELADO, "motivo", T0, T1);
         assertThat(o.getStatus()).isEqualTo(StatusOrcamento.CANCELADO);
         assertThat(o.getValorTotal()).isEqualTo(new BigDecimal("90.00"));
-        assertThat(o.getClienteId()).isEqualTo(1L);
+        assertThat(o.getClienteId()).isEqualTo("52998224725");
         assertThat(o.getEmailCliente()).isEqualTo("a@x.com");
         assertThat(o.getAtualizadoEm()).isEqualTo(T1);
     }
