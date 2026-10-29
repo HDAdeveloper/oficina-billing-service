@@ -1,5 +1,6 @@
 package br.com.oficina.billing.infrastructure.mensageria;
 
+import br.com.oficina.billing.infrastructure.config.AvisoAwsReal;
 import br.com.oficina.billing.application.port.in.ProcessadorComandos;
 import br.com.oficina.billing.infrastructure.persistence.OutboxEventoJpa;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -28,6 +29,7 @@ public class MensageriaConfig {
 
     @Bean(destroyMethod = "close")
     public SqsClient sqsClient(MensageriaProperties p) {
+        AvisoAwsReal.verificar(p.endpoint());
         var b = SqsClient.builder().region(Region.of(p.regiao()));
         if (p.endpoint() != null && !p.endpoint().isBlank()) {
             // LocalStack: endpoint próprio e credenciais fictícias. Na AWS vale a cadeia padrão de credenciais.
