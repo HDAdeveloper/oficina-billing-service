@@ -154,6 +154,16 @@ public class BillingService implements ProcessadorComandos {
             return;
         }
 
+        Pagamento aguardando = pagamentos.buscarAguardandoDoOrcamento(orcamento.getId()).orElse(null);
+        if (aguardando != null) {
+            if (!aguardando.estaVencido(agora())) { // cobrança repetida: devolve o mesmo link, sem criar outro
+                responderLink(ctx, aguardando);
+                return;
+            }
+            aguardando.expirar("Link de pagamento expirado", agora());
+            pagamentos.salvar(aguardando);
+        }
+
         String pagamentoId = ids.novo();
         ResultadoCobranca resultado = gateway.cobrar(new PagamentoGateway.SolicitacaoCobranca(
                 pagamentoId, orcamento.getId(), orcamento.getOsId(), orcamento.getValorTotal(),
@@ -172,7 +182,20 @@ public class BillingService implements ProcessadorComandos {
                 pagamentos.salvar(Pagamento.recusado(pagamentoId, orcamento, cmd.metodo(), nok.motivo(), agora()));
                 recusar(ctx, orcamento.getId(), nok.motivo());
             }
+            case ResultadoCobranca.LinkGerado link -> {
+                // O cliente ainda vai pagar: a Saga fica esperando; o resultado chega por webhook (ConfirmacaoPagamentoService)
+                Pagamento pagamento = Pagamento.aguardando(pagamentoId, orcamento, cmd.metodo(), link.idExterno(),
+                        link.link(), link.expiraEm(), ctx.sagaId(), ctx.correlationId(), agora());
+                pagamentos.salvar(pagamento);
+                responderLink(ctx, pagamento);
+            }
         }
+    }
+
+    private void responderLink(ContextoMensagem ctx, Pagamento pagamento) {
+        responder(ctx, "LINK_PAGAMENTO_GERADO", mapa("pagamentoId", pagamento.getId(),
+                "orcamentoId", pagamento.getOrcamentoId(), "link", pagamento.getLinkPagamento(),
+                "expiraEm", pagamento.getExpiraEm().toString()));
     }
 
     private void recusar(ContextoMensagem ctx, String orcamentoId, String motivo) {
@@ -193,6 +216,12 @@ public class BillingService implements ProcessadorComandos {
             if (orcamento.cancelar(cmd.motivo(), agora())) {
                 orcamentos.salvar(orcamento);
             }
+            // Link ainda não pago deixa de valer; se alguém pagar mesmo assim, o pagamento tardio é devolvido
+            pagamentos.buscarAguardandoDoOrcamento(orcamento.getId()).ifPresent(p -> {
+                if (p.expirar("Orçamento cancelado: " + cmd.motivo(), agora())) {
+                    pagamentos.salvar(p);
+                }
+            });
         } catch (RegraDeNegocioException e) {
             // Orçamento pago/estornado não se cancela: é erro do orquestrador, repetir não resolve
             LOG.error("CANCELAR_ORCAMENTO rejeitado para o orçamento {}: {}", cmd.orcamentoId(), e.getMessage());

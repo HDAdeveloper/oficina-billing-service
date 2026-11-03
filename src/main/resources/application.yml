@@ -42,6 +42,22 @@ springdoc:
     path: /swagger-ui.html
 
 billing:
+  cors:
+    # Origens que podem acionar /api/simulador/** pelo navegador (o painel /saga-monitor.html do OS Service). Vazio desliga.
+    origens: ${BILLING_CORS_ORIGENS:http://localhost:8081}
+  pagamento:
+    # simulado (padrão: local, CI e testes) ou mercadopago (cobra por link do Checkout Pro; exige as variáveis abaixo)
+    provedor: ${PAGAMENTO_PROVEDOR:simulado}
+    validade-link-minutos: ${PAGAMENTO_VALIDADE_LINK_MINUTOS:1440}
+    intervalo-expiracao-ms: 10000
+  mercadopago:
+    # NUNCA no Git: vêm de variável de ambiente (local) ou Secret (Kubernetes)
+    access-token: ${MERCADOPAGO_ACCESS_TOKEN:}
+    webhook-secret: ${MERCADOPAGO_WEBHOOK_SECRET:}
+    # URL pública HTTPS que o Mercado Pago chama (localhost não funciona; use um túnel ou o API Gateway)
+    notification-url: ${MERCADOPAGO_NOTIFICATION_URL:}
+    validade-link-minutos: ${PAGAMENTO_VALIDADE_LINK_MINUTOS:1440}
+    usar-sandbox-link: ${MERCADOPAGO_USAR_SANDBOX_LINK:false}
   mensageria:
     habilitada: ${MENSAGERIA_HABILITADA:true}
     regiao: ${AWS_REGION:us-east-1}

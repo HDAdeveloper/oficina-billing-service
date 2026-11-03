@@ -10,6 +10,10 @@ import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import java.math.BigDecimal;
+import java.time.Clock;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.ZoneOffset;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -54,6 +58,24 @@ class PagamentoGatewaySimuladoTest {
         gateway.estornar("SIM-APRO-1", BigDecimal.TEN);
         gateway.estornar(null, BigDecimal.TEN);
         assertThatThrownBy(() -> gateway.estornar("SIM-ERRO_ESTORNO-1", BigDecimal.TEN))
+                .isInstanceOf(GatewayPagamentoIndisponivelException.class);
+    }
+
+    @Test
+    void metodoLinkGeraLinkComValidadeEEsperaOPagamento() {
+        Clock relogio = Clock.fixed(Instant.parse("2026-10-22T12:00:00Z"), ZoneOffset.UTC);
+        var simulado = new PagamentoGatewaySimulado(relogio, Duration.ofMinutes(30), "http://x/pagar");
+
+        var r = (ResultadoCobranca.LinkGerado) simulado.cobrar(cobranca("link"));
+
+        assertThat(r.idExterno()).isEqualTo("SIM-PREF-pag-1");
+        assertThat(r.link()).isEqualTo("http://x/pagar/pag-1");
+        assertThat(r.expiraEm()).isEqualTo(Instant.parse("2026-10-22T12:30:00Z"));
+    }
+
+    @Test
+    void simuladoNaoTemConsultaDePagamento() {
+        assertThatThrownBy(() -> gateway.consultarPagamento("SIM-1"))
                 .isInstanceOf(GatewayPagamentoIndisponivelException.class);
     }
 }

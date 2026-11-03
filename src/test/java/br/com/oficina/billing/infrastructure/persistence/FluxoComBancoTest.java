@@ -4,6 +4,7 @@ import br.com.oficina.billing.application.port.in.ComandoBilling.CancelarOrcamen
 import br.com.oficina.billing.application.port.in.ComandoBilling.CobrarOrcamento;
 import br.com.oficina.billing.application.port.in.ComandoBilling.CriarOrcamento;
 import br.com.oficina.billing.application.port.in.ComandoBilling.EstornarPagamento;
+import br.com.oficina.billing.application.port.in.ConfirmacaoPagamentos;
 import br.com.oficina.billing.application.port.in.ConsultaOrcamentos;
 import br.com.oficina.billing.application.port.in.ContextoMensagem;
 import br.com.oficina.billing.application.port.in.ProcessadorComandos;
@@ -34,6 +35,7 @@ class FluxoComBancoTest extends PostgresTestBase {
 
     @Autowired ProcessadorComandos processador;
     @Autowired ConsultaOrcamentos consulta;
+    @Autowired ConfirmacaoPagamentos confirmacao;
     @Autowired OutboxEventoJpa outbox;
     @Autowired ObjectMapper json;
 
@@ -120,5 +122,43 @@ class FluxoComBancoTest extends PostgresTestBase {
         Orcamento o = consulta.buscarPorId(orcamentoId);
         assertThat(o.getStatus()).isEqualTo(StatusOrcamento.CANCELADO);
         assertThat(tipos(os)).containsExactly("ORCAMENTO_CRIADO", "ORCAMENTO_CANCELADO");
+    }
+
+    @Test
+    void pagamentoPorLinkFicaAguardandoEAprovacaoPublicaOEventoComASagaGuardada() throws Exception {
+        long os = OS.incrementAndGet();
+        String orcamentoId = criar(os);
+
+        processador.processar(ctx(os), new CobrarOrcamento(orcamentoId, new BigDecimal("200.00"), "LINK"));
+
+        Pagamento aguardando = consulta.listarPagamentos(orcamentoId).get(0);
+        assertThat(aguardando.getStatus()).isEqualTo(StatusPagamento.AGUARDANDO);
+        assertThat(aguardando.getLinkPagamento()).isNotBlank();
+        assertThat(aguardando.getSagaId()).isEqualTo("saga-" + os);
+        assertThat(consulta.buscarPorId(orcamentoId).getStatus()).isEqualTo(StatusOrcamento.PENDENTE);
+        assertThat(tipos(os)).containsExactly("ORCAMENTO_CRIADO", "LINK_PAGAMENTO_GERADO");
+
+        confirmacao.aprovarSimulado(aguardando.getId()); // o aviso do provedor chega depois, fora da Saga
+
+        assertThat(consulta.listarPagamentos(orcamentoId).get(0).getStatus()).isEqualTo(StatusPagamento.APROVADO);
+        assertThat(consulta.buscarPorId(orcamentoId).getStatus()).isEqualTo(StatusOrcamento.PAGO);
+        assertThat(tipos(os)).containsExactly("ORCAMENTO_CRIADO", "LINK_PAGAMENTO_GERADO", "PAGAMENTO_APROVADO");
+        assertThat(outbox.findByOsIdOrderByIdAsc(os).get(2).getSagaId()).isEqualTo("saga-" + os);
+    }
+
+    @Test
+    void linkVencidoPublicaPagamentoRecusadoELiberaOCancelamentoDoOrcamento() throws Exception {
+        long os = OS.incrementAndGet();
+        String orcamentoId = criar(os);
+        processador.processar(ctx(os), new CobrarOrcamento(orcamentoId, new BigDecimal("200.00"), "LINK"));
+        Pagamento aguardando = consulta.listarPagamentos(orcamentoId).get(0);
+
+        confirmacao.expirarAgora(aguardando.getId());
+        processador.processar(ctx(os), new CancelarOrcamento(orcamentoId, "Link de pagamento expirou"));
+
+        assertThat(consulta.listarPagamentos(orcamentoId).get(0).getStatus()).isEqualTo(StatusPagamento.EXPIRADO);
+        assertThat(consulta.buscarPorId(orcamentoId).getStatus()).isEqualTo(StatusOrcamento.CANCELADO);
+        assertThat(tipos(os)).containsExactly("ORCAMENTO_CRIADO", "LINK_PAGAMENTO_GERADO", "PAGAMENTO_RECUSADO",
+                "ORCAMENTO_CANCELADO");
     }
 }

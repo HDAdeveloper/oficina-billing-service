@@ -133,6 +133,54 @@ class RepositoriosPersistenciaTest extends PostgresTestBase {
     }
 
     @Test
+    void linkAguardandoGuardaSagaLinkEValidadeEVenceQuandoPassaDoPrazo() {
+        Orcamento o = novo(1010L);
+        orcamentos.salvar(o);
+        Pagamento p = Pagamento.aguardando(UUID.randomUUID().toString(), o, "LINK", "PREF-1", "https://mp/pagar/1",
+                T0.plusSeconds(60), "saga-9", "corr-9", T0);
+        pagamentos.salvar(p);
+
+        Pagamento lido = pagamentos.buscarAguardandoDoOrcamento(o.getId()).orElseThrow();
+        assertThat(lido.getLinkPagamento()).isEqualTo("https://mp/pagar/1");
+        assertThat(lido.getSagaId()).isEqualTo("saga-9");
+        assertThat(lido.getCorrelationId()).isEqualTo("corr-9");
+        assertThat(lido.getExpiraEm()).isEqualTo(T0.plusSeconds(60));
+        assertThat(pagamentos.buscarAguardandoVencidos(T0.plusSeconds(59)))
+                .noneMatch(x -> x.getId().equals(p.getId()));
+        assertThat(pagamentos.buscarAguardandoVencidos(T0.plusSeconds(60)))
+                .anyMatch(x -> x.getId().equals(p.getId()));
+        assertThat(pagamentos.buscarPorIdParaAtualizar(p.getId())).isPresent();
+    }
+
+    @Test
+    void aprovarOLinkTrocaOIdExternoESaiDaListaDeAguardando() {
+        Orcamento o = novo(1011L);
+        orcamentos.salvar(o);
+        Pagamento p = Pagamento.aguardando(UUID.randomUUID().toString(), o, "LINK", "PREF-2", "https://mp/pagar/2",
+                T0.plusSeconds(60), "saga-1", "corr-1", T0);
+        pagamentos.salvar(p);
+
+        Pagamento lido = pagamentos.buscarPorId(p.getId()).orElseThrow();
+        lido.aprovar("MP-55", T0.plusSeconds(5));
+        pagamentos.salvar(lido);
+
+        assertThat(pagamentos.buscarAguardandoDoOrcamento(o.getId())).isEmpty();
+        assertThat(pagamentos.buscarAprovadoDoOrcamento(o.getId()).orElseThrow().getIdExterno()).isEqualTo("MP-55");
+    }
+
+    @Test
+    void naoPermiteDoisLinksAguardandoParaOMesmoOrcamento() {
+        Orcamento o = novo(1012L);
+        orcamentos.salvar(o);
+        pagamentos.salvar(Pagamento.aguardando(UUID.randomUUID().toString(), o, "LINK", "P1", "https://mp/1",
+                T0.plusSeconds(60), "s", "c", T0));
+
+        assertThatThrownBy(() -> pagamentos.salvar(Pagamento.aguardando(UUID.randomUUID().toString(), o, "LINK",
+                "P2", "https://mp/2", T0.plusSeconds(60), "s", "c", T0)))
+                .isInstanceOf(DataIntegrityViolationException.class);
+    }
+
+    @Test
     void registraMensagemProcessadaEReconhece() {
         String id = UUID.randomUUID().toString();
         assertThat(processadas.jaProcessada(id)).isFalse();

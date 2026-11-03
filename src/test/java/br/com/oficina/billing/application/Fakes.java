@@ -68,6 +68,23 @@ final class Fakes {
         }
 
         @Override
+        public Optional<Pagamento> buscarPorIdParaAtualizar(String id) {
+            return buscarPorId(id);
+        }
+
+        @Override
+        public Optional<Pagamento> buscarAguardandoDoOrcamento(String orcamentoId) {
+            return dados.values().stream()
+                    .filter(p -> p.getOrcamentoId().equals(orcamentoId) && p.getStatus() == StatusPagamento.AGUARDANDO)
+                    .findFirst();
+        }
+
+        @Override
+        public List<Pagamento> buscarAguardandoVencidos(Instant agora) {
+            return dados.values().stream().filter(p -> p.estaVencido(agora)).toList();
+        }
+
+        @Override
         public Optional<Pagamento> buscarAprovadoDoOrcamento(String orcamentoId) {
             return dados.values().stream()
                     .filter(p -> p.getOrcamentoId().equals(orcamentoId) && p.getStatus() == StatusPagamento.APROVADO)
@@ -128,6 +145,8 @@ final class Fakes {
         boolean indisponivelNoEstorno;
         int cobrancas;
         final List<String> estornados = new ArrayList<>();
+        /** O que o provedor "diz" de cada pagamento consultado (id externo → situação). */
+        final Map<String, PagamentoConsultado> consultas = new LinkedHashMap<>();
 
         @Override
         public ResultadoCobranca cobrar(SolicitacaoCobranca solicitacao) {
@@ -136,6 +155,15 @@ final class Fakes {
             }
             cobrancas++;
             return proximoResultado;
+        }
+
+        @Override
+        public PagamentoConsultado consultarPagamento(String idExterno) {
+            PagamentoConsultado c = consultas.get(idExterno);
+            if (c == null) {
+                throw new GatewayPagamentoIndisponivelException("pagamento desconhecido no fake: " + idExterno);
+            }
+            return c;
         }
 
         @Override

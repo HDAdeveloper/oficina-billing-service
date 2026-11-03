@@ -45,6 +45,18 @@ public class PagamentoEntity {
     @Column(length = 500)
     String motivo;
 
+    @Column(name = "saga_id", length = 64)
+    String sagaId;
+
+    @Column(name = "correlation_id", length = 100)
+    String correlationId;
+
+    @Column(name = "link_pagamento", length = 500)
+    String linkPagamento;
+
+    @Column(name = "expira_em")
+    Instant expiraEm;
+
     @Column(name = "criado_em", nullable = false)
     Instant criadoEm;
 

@@ -5,4 +5,8 @@ public class GatewayPagamentoIndisponivelException extends RuntimeException {
     public GatewayPagamentoIndisponivelException(String mensagem) {
         super(mensagem);
     }
+
+    public GatewayPagamentoIndisponivelException(String mensagem, Throwable causa) {
+        super(mensagem, causa);
+    }
 }

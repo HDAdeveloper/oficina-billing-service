@@ -5,6 +5,7 @@ import br.com.oficina.billing.domain.model.Pagamento;
 import br.com.oficina.billing.domain.model.StatusPagamento;
 import org.springframework.stereotype.Repository;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -28,6 +29,10 @@ public class PagamentoRepositoryAdapter implements PagamentoRepository {
         e.status = p.getStatus();
         e.idExterno = p.getIdExterno();
         e.motivo = p.getMotivo();
+        e.sagaId = p.getSagaId();
+        e.correlationId = p.getCorrelationId();
+        e.linkPagamento = p.getLinkPagamento();
+        e.expiraEm = p.getExpiraEm();
         e.criadoEm = p.getCriadoEm();
         e.atualizadoEm = p.getAtualizadoEm();
         jpa.saveAndFlush(e);
@@ -36,6 +41,23 @@ public class PagamentoRepositoryAdapter implements PagamentoRepository {
     @Override
     public Optional<Pagamento> buscarPorId(String id) {
         return jpa.findById(id).map(PagamentoRepositoryAdapter::paraDominio);
+    }
+
+    @Override
+    public Optional<Pagamento> buscarPorIdParaAtualizar(String id) {
+        return jpa.buscarComBloqueio(id).map(PagamentoRepositoryAdapter::paraDominio);
+    }
+
+    @Override
+    public Optional<Pagamento> buscarAguardandoDoOrcamento(String orcamentoId) {
+        return jpa.findFirstByOrcamentoIdAndStatus(orcamentoId, StatusPagamento.AGUARDANDO)
+                .map(PagamentoRepositoryAdapter::paraDominio);
+    }
+
+    @Override
+    public List<Pagamento> buscarAguardandoVencidos(Instant agora) {
+        return jpa.findByStatusAndExpiraEmLessThanEqual(StatusPagamento.AGUARDANDO, agora).stream()
+                .map(PagamentoRepositoryAdapter::paraDominio).toList();
     }
 
     @Override
@@ -52,6 +74,7 @@ public class PagamentoRepositoryAdapter implements PagamentoRepository {
 
     private static Pagamento paraDominio(PagamentoEntity e) {
         return Pagamento.reconstituir(e.id, e.orcamentoId, e.osId, e.valor, e.metodo, e.status,
-                e.idExterno, e.motivo, e.criadoEm, e.atualizadoEm);
+                e.idExterno, e.motivo, e.sagaId, e.correlationId, e.linkPagamento, e.expiraEm,
+                e.criadoEm, e.atualizadoEm);
     }
 }

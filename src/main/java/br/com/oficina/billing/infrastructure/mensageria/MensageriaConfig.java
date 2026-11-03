@@ -1,6 +1,7 @@
 package br.com.oficina.billing.infrastructure.mensageria;
 
 import br.com.oficina.billing.infrastructure.config.AvisoAwsReal;
+import br.com.oficina.billing.application.port.in.ConfirmacaoPagamentos;
 import br.com.oficina.billing.application.port.in.ProcessadorComandos;
 import br.com.oficina.billing.infrastructure.persistence.OutboxEventoJpa;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -65,5 +66,11 @@ public class MensageriaConfig {
                                                  ProcessadorComandos processador) {
         String url = sqs.getQueueUrl(GetQueueUrlRequest.builder().queueName(p.filaComandos()).build()).queueUrl();
         return new SqsComandoListener(sqs, url, new ConsumidorComandos(json, new ComandoMapper(), processador));
+    }
+
+    /** Vence os links de pagamento não pagos (precisa do agendador, ligado aqui). */
+    @Bean
+    public ExpiradorDeLinks expiradorDeLinks(ConfirmacaoPagamentos confirmacao) {
+        return new ExpiradorDeLinks(confirmacao);
     }
 }
