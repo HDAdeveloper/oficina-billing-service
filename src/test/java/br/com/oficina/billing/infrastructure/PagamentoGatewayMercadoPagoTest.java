@@ -125,6 +125,13 @@ class PagamentoGatewayMercadoPagoTest {
     }
 
     @Test
+    void estornoComIdNaoNumericoEhRecusadoSemChamarOProvedor() {
+        assertThatThrownBy(() -> gateway(false).estornar("../x", BigDecimal.TEN))
+                .isInstanceOf(br.com.oficina.billing.application.port.out.IdPagamentoExternoInvalidoException.class);
+        server.verify();
+    }
+
+    @Test
     void idNaoNumericoNaoChegaAoProvedor() {
         PagamentoConsultado c = gateway(false).consultarPagamento("../../x");
         assertThat(c.referencia()).isNull();

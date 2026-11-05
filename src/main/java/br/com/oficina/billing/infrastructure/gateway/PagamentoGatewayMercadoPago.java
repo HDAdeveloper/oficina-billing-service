@@ -1,6 +1,7 @@
 package br.com.oficina.billing.infrastructure.gateway;
 
 import br.com.oficina.billing.application.port.out.GatewayPagamentoIndisponivelException;
+import br.com.oficina.billing.application.port.out.IdPagamentoExternoInvalidoException;
 import br.com.oficina.billing.application.port.out.PagamentoGateway;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.slf4j.Logger;
@@ -116,7 +117,7 @@ public class PagamentoGatewayMercadoPago implements PagamentoGateway {
     @Override
     public void estornar(String idExterno, BigDecimal valor) {
         if (idExterno == null || !ID_NUMERICO.matcher(idExterno).matches()) {
-            throw new IllegalArgumentException("Id de pagamento do Mercado Pago deve ser numérico");
+            throw new IdPagamentoExternoInvalidoException();
         }
         executar("estornar o pagamento " + idExterno, () -> http.post()
                 .uri("/v1/payments/{id}/refunds", idExterno)
