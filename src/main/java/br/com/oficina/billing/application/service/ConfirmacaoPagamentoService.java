@@ -45,22 +45,27 @@ public class ConfirmacaoPagamentoService implements ConfirmacaoPagamentos {
         this.relogio = relogio;
     }
 
+    /** Valor vindo de fora só entra no log sem quebras de linha (evita forjar linhas de log). */
+    private static String limpo(String valor) {
+        return valor == null ? null : valor.replaceAll("[\\r\\n\\t]", "_");
+    }
+
     @Override
     public void pagamentoAtualizado(String idPagamentoExterno) {
         PagamentoConsultado consultado = gateway.consultarPagamento(idPagamentoExterno);
         if (consultado.referencia() == null || consultado.referencia().isBlank()) {
-            LOG.warn("Pagamento {} do provedor sem referência do nosso pagamento; ignorado", idPagamentoExterno);
+            LOG.warn("Pagamento {} do provedor sem referência do nosso pagamento; ignorado", limpo(idPagamentoExterno));
             return;
         }
         Pagamento pagamento = pagamentos.buscarPorIdParaAtualizar(consultado.referencia()).orElse(null);
         if (pagamento == null) {
             LOG.warn("Pagamento {} do provedor aponta para {}, que não existe aqui; ignorado",
-                    idPagamentoExterno, consultado.referencia());
+                    limpo(idPagamentoExterno), limpo(consultado.referencia()));
             return;
         }
         if (consultado.situacao() != PagamentoConsultado.Situacao.APROVADO) {
             // Recusa ou pendência não encerram o link: o cliente pode tentar de novo até ele vencer
-            LOG.info("Pagamento {} do provedor está {}; o link {} continua valendo", idPagamentoExterno,
+            LOG.info("Pagamento {} do provedor está {}; o link {} continua valendo", limpo(idPagamentoExterno),
                     consultado.situacao(), pagamento.getId());
             return;
         }
@@ -79,7 +84,7 @@ public class ConfirmacaoPagamentoService implements ConfirmacaoPagamentos {
             case AGUARDANDO -> confirmar(pagamento, idPagamentoExterno);
             case APROVADO, ESTORNADO -> {
                 if (idPagamentoExterno.equals(pagamento.getIdExterno())) {
-                    LOG.info("Aviso repetido do pagamento {}; nada a fazer", idPagamentoExterno);
+                    LOG.info("Aviso repetido do pagamento {}; nada a fazer", limpo(idPagamentoExterno));
                 } else { // segundo pagamento no mesmo link: cobrou a mais, devolve
                     devolverPagamentoExtra(pagamento, idPagamentoExterno, "Pagamento em duplicidade");
                 }
@@ -109,7 +114,7 @@ public class ConfirmacaoPagamentoService implements ConfirmacaoPagamentos {
     /** Dinheiro que entrou sem dever entrar: devolve ao cliente. Se o provedor falhar, o aviso é reenviado. */
     private void devolverPagamentoExtra(Pagamento pagamento, String idPagamentoExterno, String motivo) {
         LOG.warn("{} (pagamento {}, id no provedor {}); devolvendo ao cliente", motivo, pagamento.getId(),
-                idPagamentoExterno);
+                limpo(idPagamentoExterno));
         gateway.estornar(idPagamentoExterno, pagamento.getValor());
         if (pagamento.getStatus() == StatusPagamento.EXPIRADO || pagamento.getStatus() == StatusPagamento.RECUSADO) {
             pagamento.anotar(motivo + "; devolvido automaticamente (" + idPagamentoExterno + ")", agora());

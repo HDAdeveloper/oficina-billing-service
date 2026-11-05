@@ -28,6 +28,7 @@ import java.util.Map;
 public class PagamentoGatewayMercadoPago implements PagamentoGateway {
 
     private static final Logger LOG = LoggerFactory.getLogger(PagamentoGatewayMercadoPago.class);
+    private static final java.util.regex.Pattern ID_NUMERICO = java.util.regex.Pattern.compile("\\d{1,20}");
     private static final DateTimeFormatter FORMATO_VALIDADE =
             DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
     private static final ZoneId FUSO = ZoneId.of("America/Sao_Paulo");
@@ -89,6 +90,10 @@ public class PagamentoGatewayMercadoPago implements PagamentoGateway {
 
     @Override
     public PagamentoConsultado consultarPagamento(String idExterno) {
+        if (idExterno == null || !ID_NUMERICO.matcher(idExterno).matches()) {
+            // Só ids numéricos existem no Mercado Pago; nada de montar URL com texto arbitrário
+            return new PagamentoConsultado(idExterno, null, PagamentoConsultado.Situacao.PENDENTE, "inexistente");
+        }
         JsonNode p;
         try {
             p = executar("consultar o pagamento " + idExterno, () -> http.get()

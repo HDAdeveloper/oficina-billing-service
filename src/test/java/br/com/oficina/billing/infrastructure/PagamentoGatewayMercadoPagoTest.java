@@ -125,6 +125,13 @@ class PagamentoGatewayMercadoPagoTest {
     }
 
     @Test
+    void idNaoNumericoNaoChegaAoProvedor() {
+        PagamentoConsultado c = gateway(false).consultarPagamento("../../x");
+        assertThat(c.referencia()).isNull();
+        server.verify(); // nenhuma chamada HTTP foi esperada nem feita
+    }
+
+    @Test
     void pagamentoInexistenteNaoTemReferenciaEFalhaDeRedeEhIndisponivel() {
         server.expect(requestTo(BASE + "/v1/payments/123456")).andRespond(withStatus(HttpStatus.NOT_FOUND));
         PagamentoConsultado c = gateway(false).consultarPagamento("123456");

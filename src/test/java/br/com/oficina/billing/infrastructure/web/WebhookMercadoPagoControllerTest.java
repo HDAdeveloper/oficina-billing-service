@@ -68,6 +68,18 @@ class WebhookMercadoPagoControllerTest {
     }
 
     @Test
+    void idQueNaoEhNumericoEIgnoradoSemConsultarOProvedor() throws Exception {
+        when(assinatura.valida("ts=1,v1=ok", "req-1", "../x")).thenReturn(true);
+
+        mvc.perform(post("/webhooks/mercadopago?data.id=../x&type=payment")
+                        .header("x-signature", "ts=1,v1=ok").header("x-request-id", "req-1")
+                        .contentType(MediaType.APPLICATION_JSON).content("{}"))
+                .andExpect(status().isOk());
+
+        verify(confirmacao, never()).pagamentoAtualizado(anyString());
+    }
+
+    @Test
     void outrosTiposDeAvisoSaoReconhecidosSemFazerNada() throws Exception {
         when(assinatura.valida("ts=1,v1=ok", "req-1", "55")).thenReturn(true);
 

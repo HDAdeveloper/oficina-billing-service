@@ -29,6 +29,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class WebhookMercadoPagoController {
 
     private static final Logger LOG = LoggerFactory.getLogger(WebhookMercadoPagoController.class);
+    private static final java.util.regex.Pattern ID_PAGAMENTO = java.util.regex.Pattern.compile("\\d{1,20}");
 
     private final ConfirmacaoPagamentos confirmacao;
     private final AssinaturaWebhookMercadoPago assinatura;
@@ -52,8 +53,9 @@ public class WebhookMercadoPagoController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
         String tipo = tipoQuery != null ? tipoQuery : texto(corpo, "type");
-        if (!"payment".equals(tipo) || dataId == null) {
-            LOG.info("Webhook do Mercado Pago do tipo {} ignorado", tipo);
+        // O id do pagamento no Mercado Pago é numérico; qualquer outra coisa não é um aviso real (e não vai para URL nem log)
+        if (!"payment".equals(tipo) || dataId == null || !ID_PAGAMENTO.matcher(dataId).matches()) {
+            LOG.info("Webhook do Mercado Pago ignorado (não é um aviso de pagamento válido)");
             return ResponseEntity.ok().build();
         }
         try {
