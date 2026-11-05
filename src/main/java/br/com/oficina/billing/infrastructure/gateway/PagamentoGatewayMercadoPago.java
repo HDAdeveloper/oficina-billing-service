@@ -115,6 +115,9 @@ public class PagamentoGatewayMercadoPago implements PagamentoGateway {
 
     @Override
     public void estornar(String idExterno, BigDecimal valor) {
+        if (idExterno == null || !ID_NUMERICO.matcher(idExterno).matches()) {
+            throw new IllegalArgumentException("Id de pagamento do Mercado Pago deve ser numérico");
+        }
         executar("estornar o pagamento " + idExterno, () -> http.post()
                 .uri("/v1/payments/{id}/refunds", idExterno)
                 .header("X-Idempotency-Key", "estorno-" + idExterno) // repetir o estorno não devolve duas vezes

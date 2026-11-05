@@ -22,6 +22,7 @@ import java.time.Clock;
 public class MercadoPagoConfig {
 
     @Bean
+    @org.springframework.context.annotation.Primary // o simulado só existe quando este não está ativo; evita ambiguidade
     public PagamentoGateway pagamentoGatewayMercadoPago(RestClient.Builder builder, MercadoPagoProperties p,
                                                         Clock relogio) {
         return new PagamentoGatewayMercadoPago(builder, p, relogio);

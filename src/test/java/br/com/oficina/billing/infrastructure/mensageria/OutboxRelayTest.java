@@ -23,6 +23,7 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 
 @SpringBootTest
 class OutboxRelayTest extends PostgresTestBase {
@@ -130,6 +131,6 @@ class OutboxRelayTest extends PostgresTestBase {
         var fake = new PublicadorFake();
         fake.falhar = true;
 
-        relay(fake).executar(); // só registra no log
+        assertThatCode(() -> relay(fake).executar()).doesNotThrowAnyException(); // só registra no log
     }
 }
