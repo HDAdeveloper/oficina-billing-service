@@ -11,6 +11,8 @@ data:
   # ARN do tópico de eventos (o Terraform da Etapa 7 informa o valor real, com o id da conta)
   EVENTS_TOPIC_ARN: "arn:aws:sns:us-east-1:CONTA_AWS:oficina-saga-events"
   # New Relic (a licenca fica no segredo opcional "newrelic", nunca no Git)
+  # Logs em JSON (formato ECS) no cluster; o correlationId/sagaId do MDC saem como campos
+  LOGGING_STRUCTURED_FORMAT_CONSOLE: "ecs"
   NEW_RELIC_APP_NAME: "oficina-billing-service"
   NEW_RELIC_LOG_FILE_NAME: "STDOUT"
   NEW_RELIC_DISTRIBUTED_TRACING_ENABLED: "true"
