@@ -44,7 +44,7 @@ O domínio usa a porta `PagamentoGateway` (camada anticorrupção). Há dois ada
 
 **Fluxo por link:** `COBRAR_ORCAMENTO` → preferência criada → pagamento `AGUARDANDO` + evento `LINK_PAGAMENTO_GERADO` → o cliente paga →
 webhook `POST /webhooks/mercadopago` (público, com assinatura `x-signature` conferida por HMAC-SHA256) → o Billing **consulta** o pagamento
-(`GET /v1/payments/{id}`) → `APROVADO` + `PAGAMENTO_APROVADO`. Detalhes de segurança e de falhas em [`eventos.md`](../../docs/eventos.md).
+(`GET /v1/payments/{id}`) → `APROVADO` + `PAGAMENTO_APROVADO`. Detalhes de segurança e de falhas em [`eventos.md`](eventos.md).
 
 - **Estados do pagamento:** `AGUARDANDO` → `APROVADO` → `ESTORNADO`; `AGUARDANDO` → `EXPIRADO` (link vencido ou orçamento cancelado); `RECUSADO` (provedor simulado).
 - **Vencimento:** rotina a cada 10 s (`billing.pagamento.intervalo-expiracao-ms`); o link vale `PAGAMENTO_VALIDADE_LINK_MINUTOS` (padrão 1440 = 24 h).
@@ -61,7 +61,7 @@ webhook `POST /webhooks/mercadopago` (público, com assinatura `x-signature` con
 | `MERCADOPAGO_NOTIFICATION_URL` | URL pública HTTPS do webhook (ex.: `https://xxxx.ngrok-free.app/webhooks/mercadopago`) |
 | `MERCADOPAGO_USAR_SANDBOX_LINK` | `true` para usar o `sandbox_init_point` |
 
-O serviço **não sobe** com `mercadopago` sem o token e o segredo. Passo a passo completo: [`docs/mercado-pago.md`](../../docs/mercado-pago.md).
+O serviço **não sobe** com `mercadopago` sem o token e o segredo. Passo a passo completo: [`docs/mercado-pago.md`](mercado-pago.md).
 
 ## Modelo e regras
 
