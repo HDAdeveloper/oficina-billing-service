@@ -17,7 +17,7 @@ public class OpenApiConfig {
     public OpenAPI openAPI() {
         return new OpenAPI()
                 .info(new Info()
-                        .title("Billing Service — Oficina Mecânica")
+                        .title("Billing Service — Oficina Tech Service")
                         .version("1.0.0")
                         .description("Consulta de orçamentos e pagamentos. Os comandos (criar, cobrar, cancelar, "
                                 + "estornar) chegam por mensageria; esta API é somente leitura. Use um token "
