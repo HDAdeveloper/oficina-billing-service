@@ -1,8 +1,8 @@
 {
     "openapi":  "3.0.1",
     "info":  {
-                 "title":  "Billing Service â Oficina MecÃ¢nica",
-                 "description":  "Consulta de orÃ§amentos e pagamentos. Os comandos (criar, cobrar, cancelar, estornar) chegam por mensageria; esta API Ã© somente leitura. Use um token emitido pelo OS Service em /api/auth/login.",
+                 "title":  "Billing Service — Oficina Tech Service",
+                 "description":  "Consulta de orçamentos e pagamentos. Os comandos (criar, cobrar, cancelar, estornar) chegam por mensageria; esta API é somente leitura. Use um token emitido pelo OS Service em /api/auth/login.",
                  "version":  "1.0.0"
              },
     "servers":  [
@@ -22,9 +22,9 @@
                   "/api/simulador/pagamentos/{id}/expirar":  {
                                                                  "post":  {
                                                                               "tags":  [
-                                                                                           "Simulador de pagamento por link (sÃ³ com o provedor simulado)"
+                                                                                           "Simulador de pagamento por link (só com o provedor simulado)"
                                                                                        ],
-                                                                              "summary":  "Simula o link vencendo sem pagamento (a Saga roda a compensaÃ§Ã£o A)",
+                                                                              "summary":  "Simula o link vencendo sem pagamento (a Saga roda a compensação A)",
                                                                               "operationId":  "expirar",
                                                                               "parameters":  [
                                                                                                  {
@@ -46,7 +46,7 @@
                   "/api/simulador/pagamentos/{id}/aprovar":  {
                                                                  "post":  {
                                                                               "tags":  [
-                                                                                           "Simulador de pagamento por link (sÃ³ com o provedor simulado)"
+                                                                                           "Simulador de pagamento por link (só com o provedor simulado)"
                                                                                        ],
                                                                               "summary":  "Simula o cliente pagando o link (a Saga segue para a reserva de estoque)",
                                                                               "operationId":  "aprovar",
@@ -70,9 +70,9 @@
                   "/api/ordens/{osId}/orcamentos":  {
                                                         "get":  {
                                                                     "tags":  [
-                                                                                 "OrÃ§amentos e pagamentos (consulta)"
+                                                                                 "Orçamentos e pagamentos (consulta)"
                                                                              ],
-                                                                    "summary":  "Lista os orÃ§amentos de uma OS (mais recentes primeiro)",
+                                                                    "summary":  "Lista os orçamentos de uma OS (mais recentes primeiro)",
                                                                     "operationId":  "porOs",
                                                                     "parameters":  [
                                                                                        {
@@ -105,9 +105,9 @@
                   "/api/orcamentos/{id}":  {
                                                "get":  {
                                                            "tags":  [
-                                                                        "OrÃ§amentos e pagamentos (consulta)"
+                                                                        "Orçamentos e pagamentos (consulta)"
                                                                     ],
-                                                           "summary":  "Busca um orÃ§amento pelo id",
+                                                           "summary":  "Busca um orçamento pelo id",
                                                            "operationId":  "buscar",
                                                            "parameters":  [
                                                                               {
@@ -136,9 +136,9 @@
                   "/api/orcamentos/{id}/pagamentos":  {
                                                           "get":  {
                                                                       "tags":  [
-                                                                                   "OrÃ§amentos e pagamentos (consulta)"
+                                                                                   "Orçamentos e pagamentos (consulta)"
                                                                                ],
-                                                                      "summary":  "Lista as tentativas de pagamento de um orÃ§amento (mais recentes primeiro)",
+                                                                      "summary":  "Lista as tentativas de pagamento de um orçamento (mais recentes primeiro)",
                                                                       "operationId":  "pagamentos",
                                                                       "parameters":  [
                                                                                          {
