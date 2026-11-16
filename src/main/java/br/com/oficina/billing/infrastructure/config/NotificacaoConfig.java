@@ -4,10 +4,10 @@ import br.com.oficina.billing.application.port.out.NotificadorCliente;
 import br.com.oficina.billing.infrastructure.notificacao.NotificadorLog;
 import br.com.oficina.billing.infrastructure.notificacao.NotificadorSes;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
@@ -36,14 +36,16 @@ public class NotificacaoConfig {
     }
 
     @Bean
+    @Primary
     @ConditionalOnProperty(name = "billing.email.provedor", havingValue = "ses")
     public NotificadorCliente notificadorSes(SesClient ses,
                                              @Value("${billing.email.remetente}") String remetente) {
         return new NotificadorSes(ses, remetente);
     }
 
+    /** Padrão: provedor ausente ou {@code nenhum}. Nunca convive com o SES (as condições são exclusivas). */
     @Bean
-    @ConditionalOnMissingBean(NotificadorCliente.class)
+    @ConditionalOnProperty(name = "billing.email.provedor", havingValue = "nenhum", matchIfMissing = true)
     public NotificadorCliente notificadorLog() {
         return new NotificadorLog();
     }
