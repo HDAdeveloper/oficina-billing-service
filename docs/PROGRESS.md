@@ -700,7 +700,7 @@ Hoje o diagnóstico fica no OS Service e o Execution só entra a partir de `EM_E
 - **Rotas:** `POST /webhooks/mercadopago` (pública, assinatura `x-signature` HMAC-SHA256), `POST /api/mercadopago/pagamentos/{id}/sincronizar` (ADMIN, conciliação manual), `POST /api/simulador/pagamentos/{id}/aprovar|expirar` (ADMIN, só simulado).
 - **OS Service:** novo estado de Saga `AGUARDANDO_PAGAMENTO` (prazo = validade do link + 60 s, sem reenvio; vencido → compensação A), evento `LINK_PAGAMENTO_GERADO`, `Saga.linkPagamento` (**migration V4**), `SagaResponse.linkPagamento`. Diagrama `06-estados-saga.png` regenerado; `docs/eventos.md`, `docs/ddd.md`, `billing-service/docs/servico.md` atualizados.
 - **Scripts/Postman:** `saga-e2e.ps1` ganhou os cenários 5 (link pago) e 6 (link vencido); Postman: "Aprovar orçamento com pagamento por LINK".
-- **Fora do escopo (declarado):** webhook na AWS (Billing não é exposto pelo API Gateway; lá o provedor segue `simulado`); cancelar um link aberto; e-mail com o link (ver "Aviso ao cliente").
+- **Fora do escopo (declarado):** webhook na AWS **implementado** (Service `billing-service-publico` + rota `POST /webhooks/mercadopago`, ver `docs/mercado-pago.md` §6) mas não validado com o Mercado Pago real na AWS (lá o provedor segue `simulado` por padrão); cancelar um link aberto; e-mail com o link (ver "Aviso ao cliente").
 - **Como testar sem conta:** `.\mvnw.cmd clean verify` em `os-service` e `billing-service`; com o ambiente local: `scripts\local\saga-e2e.ps1` (6 cenários, usa o simulador). **Com conta de testes:** `docs/mercado-pago.md`.
 - Não compilei nem rodei os testes aqui (sem Maven): validar na máquina do usuário. Pontos do Mercado Pago ainda não conferidos contra a API real estão listados em `docs/mercado-pago.md` (seção 5).
 
@@ -723,3 +723,10 @@ Compensação C com o Mercado Pago de teste: pagamento aprovado, execução falh
 
 ### Link vencido validado com o Mercado Pago (03/11)
 Com `PAGAMENTO_VALIDADE_LINK_MINUTOS=2`: link gerado 20:21:38, o Billing publicou `PagamentoRecusado` às 20:23:38 (vencimento), a Saga cancelou o orçamento e terminou `ENCERRADA` às 20:23:39. Toda a integração real (link, webhook, estorno, vencimento) está validada em teste.
+
+
+## 16/11/2026 — e-mail com o link de pagamento (SES)
+- O cliente precisa receber o link para pagar, então o Billing passou a enviar o link por e-mail quando gera a cobrança por link. Porta `NotificadorCliente`, adaptador `NotificadorSes` (SES; mesmo código no LocalStack e na AWS) e `NotificadorLog` (padrão quando desligado). Falha no envio não derruba a Saga (melhor esforço; o link segue na API e no Monitor).
+- Ligação: `billing.email.provedor=ses` (`EMAIL_PROVEDOR`), remetente `EMAIL_REMETENTE` (padrão `oficina@oficina.local`). O LocalStack ganhou o serviço `ses` e o remetente é verificado no init; `scripts/local/ver-emails.ps1` mostra os e-mails enviados.
+- Na AWS real o SES exige remetente e destinatário verificados (sandbox) e a permissão `ses:SendEmail` no papel do Billing; **não está no Terraform** (ambiente destruído). A demonstração gravada na AWS usou o log, não o e-mail.
+- Outros avisos (orçamento pronto, finalizada, cancelada) seguem como evolução futura.

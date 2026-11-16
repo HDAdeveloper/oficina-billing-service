@@ -15,7 +15,7 @@
 | 🟨 amarelo pequeno | **Ator** | Quem dispara o comando (atendente, cliente) |
 | 🟡 amarelo grande | **Agregado** | Quem recebe o comando, aplica as regras e gera o evento |
 | 🟪 lilás | **Política** | Regra do tipo "**quando** acontecer X, **então** fazer Y" |
-| 🌸 rosa | **Sistema externo** | Mercado Pago |
+| 🌸 rosa | **Sistema externo** | Mercado Pago e e-mail (SES) |
 | 🟥 vermelho | **Ponto de atenção** (*hotspot*) | Dúvida, risco ou decisão adiada |
 
 Os eventos marcados com `●` trafegam como **mensagem** entre serviços (contrato em [`eventos.md`](eventos.md)). Os demais acontecem dentro do
@@ -33,7 +33,8 @@ flowchart TB
     e4 --> e5["● Orçamento criado<br/><i>Faturamento</i>"]:::bi
     e5 --> e6["OS aguardando aprovação<br/><i>Ordens de Serviço</i>"]:::os
     e6 --> e7["Orçamento aprovado pelo cliente<br/><i>Ordens de Serviço</i>"]:::os
-    e7 --> e8["● Pagamento aprovado<br/><i>Faturamento</i>"]:::bi
+    e7 --> e7b["● Link de pagamento gerado e enviado por e-mail<br/><i>Faturamento</i>"]:::bi
+    e7b --> e8["● Pagamento aprovado<br/><i>Faturamento</i>"]:::bi
     e8 --> e9["● Estoque reservado<br/><i>Execução</i>"]:::ex
     e9 --> e10["OS em execução<br/><i>Ordens de Serviço</i>"]:::os
     e10 --> e11["● Execução iniciada<br/><i>Execução</i>"]:::ex
@@ -71,8 +72,10 @@ flowchart LR
 
 ```mermaid
 flowchart LR
-    at2(["Cliente"]):::ator --> c3["Aprovar orçamento"]:::cmd --> g3["OrdemServico<br/>+ Saga"]:::agg --> c4["COBRAR_ORCAMENTO"]:::cmd --> g4["Pagamento"]:::agg --> e2["● Pagamento aprovado"]:::ev --> p2{{"Quando pagamento aprovado,<br/>então reservar estoque"}}:::pol
+    at2(["Cliente"]):::ator --> c3["Aprovar orçamento"]:::cmd --> g3["OrdemServico<br/>+ Saga"]:::agg --> c4["COBRAR_ORCAMENTO"]:::cmd --> g4["Pagamento"]:::agg --> e1["● Link de pagamento gerado"]:::ev
     g4 <--> mp[("Mercado Pago")]:::ext
+    e1 --> p1{{"Quando o link for gerado,<br/>então enviar o link por e-mail"}}:::pol --> ses[("E-mail (SES)")]:::ext
+    ses -.-> at3(["Cliente paga pelo link"]):::ator --> e2["● Pagamento aprovado"]:::ev --> p2{{"Quando pagamento aprovado,<br/>então reservar estoque"}}:::pol
     classDef ev fill:#ffb74d,stroke:#e65100,color:#000
     classDef cmd fill:#64b5f6,stroke:#0d47a1,color:#000
     classDef ator fill:#fff176,stroke:#f9a825,color:#000
@@ -170,7 +173,7 @@ Estados de cada agregado: [`ddd.md`](ddd.md), seção 4.
 | Ponto | Situação | Decisão |
 |---|---|---|
 | 🟥 Cobrança na retirada do veículo | Hoje o cliente paga na aprovação, antes de reservar estoque. Pagar só na entrega muda a ordem da Saga e o sentido das compensações (o conserto não se desfaz) | **Adiado.** Registrado como evolução futura; fluxo atual mantido |
-| 🟥 Aviso ao cliente (e-mail/SMS) | Hoje ninguém avisa o cliente: o e-mail só segue no comando `CRIAR_ORCAMENTO` e é usado como pagador no gateway. O cliente consulta `GET /api/minhas-ordens` | **Adiado.** Evolução futura: um consumidor dos eventos da Saga já existentes (orçamento pronto, pago, finalizado, cancelada), via SNS direto para e-mail ou um serviço de notificações com SES; não altera o domínio nem as compensações |
+| 🟥 Aviso ao cliente (e-mail/SMS) | **O link de pagamento agora vai por e-mail** (Billing, via SES; LocalStack no ambiente local). Os demais avisos (orçamento pronto, finalizada, cancelada) continuam sem envio; o cliente consulta `GET /api/minhas-ordens` | **Link: implementado.** Demais avisos: adiado. Evolução futura: um consumidor dos eventos da Saga já existentes (orçamento pronto, pago, finalizado, cancelada), via SNS direto para e-mail ou um serviço de notificações com SES; não altera o domínio nem as compensações |
 | 🟥 Estoque como serviço próprio | Estoque e execução são assuntos distintos e o cadastro da peça está dividido entre OS (nome/preço) e Execution (quantidade) | **Adiado.** Permanece no Execution Service; extração registrada como evolução futura no [ADR-008](adr/008-estoque-no-execution-service-evolucao-futura.md) |
 | 🟥 Estorno que não conclui | O Mercado Pago pode falhar ao estornar | Reenvia e, esgotadas as tentativas, a Saga fica em `ESTORNO_PENDENTE` para ação manual (DLQ + alerta) |
 | 🟥 Estoque liberado que não conclui | Falha ao devolver as peças | Fica em `LIBERACAO_PENDENTE`; ação manual |

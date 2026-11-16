@@ -27,6 +27,10 @@ Variaveis de ambiente (todas tem padrao para uso local):
 | `BILLING_COMMANDS_QUEUE`, `EVENTS_TOPIC_ARN` | fila de comandos e topico de eventos | LocalStack |
 | `MENSAGERIA_HABILITADA` | liga SNS/SQS | `true` |
 | `AWS_ENDPOINT_URL` | aponta para o LocalStack | vazio |
+| `EMAIL_PROVEDOR` | `ses` envia o link de pagamento por e-mail; `nenhum` só registra no log | `nenhum` |
+| `EMAIL_REMETENTE` | remetente do e-mail (verificado no SES) | `oficina@oficina.local` |
+
+Os e-mails enviados ao LocalStack ficam em `http://localhost:4566/_aws/ses` (ou `.\scripts\local\ver-emails.ps1`, na raiz do workspace).
 
 ## Como testar
 

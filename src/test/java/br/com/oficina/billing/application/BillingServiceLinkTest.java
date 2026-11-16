@@ -35,6 +35,8 @@ class BillingServiceLinkTest {
     private Fakes.GatewayFake gateway;
     private BillingService service;
     private int mensagens;
+    private final java.util.List<String> avisos = new java.util.ArrayList<>();
+    private boolean notificadorFalha;
 
     @BeforeEach
     void setUp() {
@@ -44,7 +46,13 @@ class BillingServiceLinkTest {
         gateway = new Fakes.GatewayFake();
         gateway.proximoResultado = new ResultadoCobranca.LinkGerado("PREF-1", "https://mp/pagar/1", T0.plusSeconds(3600));
         service = new BillingService(orcamentos, pagamentos, new Fakes.ProcessadasMem(), eventos, gateway,
-                new Fakes.IdsSequenciais(), Clock.fixed(T0, ZoneOffset.UTC));
+                new Fakes.IdsSequenciais(), Clock.fixed(T0, ZoneOffset.UTC),
+                (email, osId, valor, link, expiraEm) -> {
+                    if (notificadorFalha) {
+                        throw new IllegalStateException("SES fora do ar");
+                    }
+                    avisos.add(email + "|" + osId + "|" + valor + "|" + link);
+                });
     }
 
     private ContextoMensagem msg() {
@@ -80,6 +88,27 @@ class BillingServiceLinkTest {
                 .containsEntry("orcamentoId", o.getId())
                 .containsEntry("link", "https://mp/pagar/1")
                 .containsEntry("expiraEm", T0.plusSeconds(3600).toString());
+    }
+
+    @Test
+    void cobrancaPorLinkAvisaOClientePorEmail() {
+        Orcamento o = orcamentoCriado();
+
+        cobrar(o);
+
+        assertThat(avisos).containsExactly("ana@x.com|42|100.00|https://mp/pagar/1");
+    }
+
+    @Test
+    void falhaNoEmailNaoDerrubaASaga() {
+        Orcamento o = orcamentoCriado();
+        eventos.publicados.clear();
+        notificadorFalha = true;
+
+        cobrar(o);
+
+        assertThat(eventos.tipos()).containsExactly("LINK_PAGAMENTO_GERADO");
+        assertThat(pagamentos.dados.values().iterator().next().getStatus()).isEqualTo(StatusPagamento.AGUARDANDO);
     }
 
     @Test

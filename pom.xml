@@ -67,6 +67,10 @@
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>sns</artifactId>
         </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>ses</artifactId>
+        </dependency>
         <!-- Necessário para o IRSA no EKS: sem o módulo sts o SDK ignora o token web identity -->
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
