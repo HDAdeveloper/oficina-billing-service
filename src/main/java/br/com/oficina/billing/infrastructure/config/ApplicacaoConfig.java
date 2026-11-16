@@ -5,6 +5,7 @@ import br.com.oficina.billing.application.port.in.ConsultaOrcamentos;
 import br.com.oficina.billing.application.port.in.ProcessadorComandos;
 import br.com.oficina.billing.application.port.out.GeradorId;
 import br.com.oficina.billing.application.port.out.MensagemProcessadaRepository;
+import br.com.oficina.billing.application.port.out.NotificadorCliente;
 import br.com.oficina.billing.application.port.out.OrcamentoRepository;
 import br.com.oficina.billing.application.port.out.PagamentoGateway;
 import br.com.oficina.billing.application.port.out.PagamentoRepository;
@@ -64,9 +65,10 @@ public class ApplicacaoConfig {
     public ProcessadorComandos processadorComandos(OrcamentoRepository orcamentos, PagamentoRepository pagamentos,
                                                    MensagemProcessadaRepository processadas,
                                                    PublicadorEventos eventos, PagamentoGateway gateway,
-                                                   GeradorId ids, Clock relogio, TransactionTemplate tx) {
+                                                   GeradorId ids, Clock relogio, TransactionTemplate tx,
+                                                   NotificadorCliente notificador) {
         return TransacaoProxy.envolver(ProcessadorComandos.class,
-                new BillingService(orcamentos, pagamentos, processadas, eventos, gateway, ids, relogio), tx);
+                new BillingService(orcamentos, pagamentos, processadas, eventos, gateway, ids, relogio, notificador), tx);
     }
 
     @Bean

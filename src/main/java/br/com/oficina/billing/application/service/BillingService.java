@@ -11,6 +11,7 @@ import br.com.oficina.billing.application.port.in.ProcessadorComandos;
 import br.com.oficina.billing.application.port.out.EventoSaga;
 import br.com.oficina.billing.application.port.out.GeradorId;
 import br.com.oficina.billing.application.port.out.MensagemProcessadaRepository;
+import br.com.oficina.billing.application.port.out.NotificadorCliente;
 import br.com.oficina.billing.application.port.out.OrcamentoRepository;
 import br.com.oficina.billing.application.port.out.PagamentoGateway;
 import br.com.oficina.billing.application.port.out.PagamentoGateway.ResultadoCobranca;
@@ -49,10 +50,18 @@ public class BillingService implements ProcessadorComandos {
     private final PagamentoGateway gateway;
     private final GeradorId ids;
     private final Clock relogio;
+    private final NotificadorCliente notificador;
 
     public BillingService(OrcamentoRepository orcamentos, PagamentoRepository pagamentos,
                           MensagemProcessadaRepository processadas, PublicadorEventos eventos,
                           PagamentoGateway gateway, GeradorId ids, Clock relogio) {
+        this(orcamentos, pagamentos, processadas, eventos, gateway, ids, relogio, null);
+    }
+
+    public BillingService(OrcamentoRepository orcamentos, PagamentoRepository pagamentos,
+                          MensagemProcessadaRepository processadas, PublicadorEventos eventos,
+                          PagamentoGateway gateway, GeradorId ids, Clock relogio, NotificadorCliente notificador) {
+        this.notificador = notificador;
         this.orcamentos = orcamentos;
         this.pagamentos = pagamentos;
         this.processadas = processadas;
@@ -188,7 +197,21 @@ public class BillingService implements ProcessadorComandos {
                         link.link(), link.expiraEm(), ctx.sagaId(), ctx.correlationId(), agora());
                 pagamentos.salvar(pagamento);
                 responderLink(ctx, pagamento);
+                avisarCliente(orcamento, pagamento);
             }
+        }
+    }
+
+    /** Manda o link ao cliente por e-mail. Melhor esforço: se falhar, a Saga segue e o link continua na API. */
+    private void avisarCliente(Orcamento orcamento, Pagamento pagamento) {
+        if (notificador == null) {
+            return;
+        }
+        try {
+            notificador.linkDePagamento(orcamento.getEmailCliente(), pagamento.getOsId(), pagamento.getValor(),
+                    pagamento.getLinkPagamento(), pagamento.getExpiraEm());
+        } catch (RuntimeException e) {
+            LOG.warn("Não foi possível enviar o link de pagamento da OS {} ao cliente: {}", pagamento.getOsId(), e.toString());
         }
     }
 

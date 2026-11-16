@@ -58,6 +58,12 @@ billing:
     notification-url: ${MERCADOPAGO_NOTIFICATION_URL:}
     validade-link-minutos: ${PAGAMENTO_VALIDADE_LINK_MINUTOS:1440}
     usar-sandbox-link: ${MERCADOPAGO_USAR_SANDBOX_LINK:false}
+  email:
+    # nenhum (padrão: só registra no log) ou ses (LocalStack localmente; na AWS exige remetente verificado no SES)
+    provedor: ${EMAIL_PROVEDOR:nenhum}
+    remetente: ${EMAIL_REMETENTE:oficina@oficina.local}
+    regiao: ${AWS_REGION:us-east-1}
+    endpoint: ${AWS_ENDPOINT_URL:}
   mensageria:
     habilitada: ${MENSAGERIA_HABILITADA:true}
     regiao: ${AWS_REGION:us-east-1}
