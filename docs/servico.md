@@ -22,6 +22,19 @@ Todas exigem JWT com papel `ADMIN`. A escrita acontece só por comando da Saga.
 | `POST /api/simulador/pagamentos/{id}/aprovar` / `/expirar` | Simulam o cliente pagando ou o link vencendo (só com `provedor=simulado`) |
 | `/actuator/health` | Saúde (público) |
 
+## E-mail do link de pagamento
+
+Quando gera um link novo, o Billing envia um e-mail ao `emailCliente` do orçamento (valor, link e validade), pela porta `NotificadorCliente`
+([ADR-010](adr/010-link-de-pagamento-por-email-ses.md)). Adaptadores: `NotificadorSes` (SES) e `NotificadorLog` (padrão).
+
+| Variável | Efeito | Padrão |
+|---|---|---|
+| `EMAIL_PROVEDOR` | `ses` envia pelo SES; `nenhum` só registra no log | `nenhum` |
+| `EMAIL_REMETENTE` | remetente, que precisa estar verificado no SES | `oficina@oficina.local` |
+
+O envio é de melhor esforço (falha não derruba a Saga) e não se repete numa cobrança repetida. Local: o LocalStack guarda os e-mails em
+`http://localhost:4566/_aws/ses` (`scripts\local\ver-emails.ps1`). Na AWS o SES exige remetente e destinatário verificados e a permissão `ses:SendEmail`.
+
 ## Mensageria
 
 | Direção | Mensagem |

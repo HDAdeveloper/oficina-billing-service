@@ -1,0 +1,18 @@
+# Entrada pública do webhook do Mercado Pago (ADR-009). Só o API Gateway chama este balanceador, e ele só
+# encaminha POST /webhooks/mercadopago. As demais rotas do Billing continuam protegidas por JWT (SecurityConfig)
+# e não têm rota no API Gateway. Execution NÃO tem balanceador público (só mensageria).
+apiVersion: v1
+kind: Service
+metadata:
+  name: billing-service-publico
+  namespace: oficina
+  labels:
+    app: billing-service
+spec:
+  type: LoadBalancer
+  selector:
+    app: billing-service
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
